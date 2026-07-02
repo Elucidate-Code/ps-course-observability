@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ObservabilityDemo — Order Workbench</title>
+    <link rel="stylesheet" href="app.css" />
+    <style>
+        .result-trace {
+            margin-top: 6px;
+            font-size: 0.8em;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .trace-id-val {
+            font-family: monospace;
+            font-size: 0.95em;
+            color: #c0392b;
+            cursor: pointer;
+            border-bottom: 1px dashed #c0392b;
+            word-break: break-all;
+        }
+        .trace-id-val:hover { opacity: 0.75; }
+        .trace-copy-hint { font-size: 0.8em; color: #aaa; font-style: italic; }
+    </style>
+</head>
+<body>
+<div class="layout">
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">ObservabilityDemo</div>
+        </div>
+        <div class="nav-links">
+            <a class="nav-link active" href="/">
+                <span class="nav-icon">📋</span> Order Workbench
+            </a>
+        </div>
+        <a class="nav-link aspire-link" href="http://localhost:18888" target="_blank">
+            Aspire Dashboard ↗
+        </a>
+    </nav>
+
+    <!-- Main -->
+    <div class="main">
+        <div class="top-bar">
+            <span class="top-bar-title">Order Workbench</span>
+        </div>
+
+        <div class="page-content">
+
+            <!-- Demo controls -->
+            <div class="card controls-card">
+                <div class="controls-row">
+                    <div class="control-group">
+                        <span class="control-label">Fault injection</span>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-toggle-off" id="btn-slow"     onclick="toggle('slowInventory')">⏳ Slow</button>
+                            <button class="btn btn-sm btn-toggle-off" id="btn-fail"     onclick="toggle('failInventory')">💥 Fail</button>
+                            <button class="btn btn-sm btn-toggle-off" id="btn-highload" onclick="toggle('highLoad')">🔥 High Load</button>
+                            <button class="btn btn-sm btn-toggle-off" id="btn-degrading" onclick="toggle('degradingLoad')" title="Ramps slow-order % from 5% → 65% over ~30 s — P95/P99 climb while P50 stays flat">📈 Degrading</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trigger a request -->
+            <div class="card">
+                <div class="card-title">Trigger a Request</div>
+                <div class="order-form">
+                    <div class="field">
+                        <label for="customerId">Customer ID</label>
+                        <input id="customerId" value="cust-42" placeholder="cust-42" />
+                    </div>
+                    <div class="field">
+                        <label for="sku">Product SKU</label>
+                        <input id="sku" value="SKU-A1" placeholder="SKU-A1" />
+                    </div>
+                    <div class="field field-sm">
+                        <label for="qty">Qty</label>
+                        <input id="qty" type="number" value="3" min="1" max="99" />
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="btn-place"      onclick="placeOrder()">▶ Place Order</button>
+                        <button class="btn btn-warning" id="btn-slow-order" onclick="slowOrder()" title="Enables SlowInventory then fires an order">⏳ Slow Order</button>
+                        <button class="btn btn-danger"  id="btn-fail-order" onclick="failOrder()" title="Enables FailInventory then fires an order">💥 Fail Order</button>
+                        <button class="btn btn-danger"  id="btn-dbfail-order" onclick="dbFailOrder()" title="Forces the order save to fail with a database connection error">🗄️ DB Fail Order</button>
+                        <button class="btn btn-danger"  id="btn-innerexc-order" onclick="innerExceptionOrder()" title="Fails inventory with an HttpRequestException wrapping an inner TimeoutException">🔌 Inner Exception</button>
+                    </div>
+                </div>
+                <div id="result"></div>
+            </div>
+
+            <!-- Customer lookup (PII demo: email travels in the query string) -->
+            <div class="card">
+                <div class="card-title">Customer Lookup</div>
+                <div class="order-form">
+                    <div class="field">
+                        <label for="lookupEmail">Email</label>
+                        <input id="lookupEmail" value="emily.williams@globomantics.com" placeholder="emily.williams@globomantics.com" />
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="btn-lookup" onclick="lookupCustomer()" title="GET /customers/lookup?email=... — the email travels in the URL">🔎 Lookup by Email</button>
+                    </div>
+                </div>
+                <div id="lookup-result"></div>
+            </div>
+
+            <!-- Activity feed -->
+            <div class="card">
+                <div class="card-header-row">
+                    <div class="card-title">Activity Feed</div>
+                    <button class="btn btn-sm btn-outline" onclick="clearFeed()">Clear</button>
+                </div>
+                <div id="feed-container">
+                    <div class="feed-empty">No activity yet — click <strong>Place Order</strong> above to begin.</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ── State ──────────────────────────────────────────────────── */
+    let settings = { slowInventory: false, failInventory: false, highLoad: false, degradingLoad: false };
+    let counter = 0;
+    let busy = false;
+
+    /* ── Settings ───────────────────────────────────────────────── */
+    async function loadSettings() {
+        const r = await fetch('/api/settings');
+        settings = await r.json();
+        renderSettings();
+    }
+
+    function renderSettings() {
+        document.getElementById('btn-slow').className =
+            `btn btn-sm ${settings.slowInventory ? 'btn-toggle-on-warn' : 'btn-toggle-off'}`;
+        document.getElementById('btn-fail').className =
+            `btn btn-sm ${settings.failInventory ? 'btn-toggle-on-err' : 'btn-toggle-off'}`;
+        document.getElementById('btn-highload').className =
+            `btn btn-sm ${settings.highLoad ? 'btn-toggle-on-warn' : 'btn-toggle-off'}`;
+        document.getElementById('btn-degrading').className =
+            `btn btn-sm ${settings.degradingLoad ? 'btn-toggle-on-warn' : 'btn-toggle-off'}`;
+    }
+
+    async function toggle(key) {
+        await patch({ [key]: !settings[key] });
+    }
+
+    async function patch(body) {
+        const r = await fetch('/api/settings', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        settings = await r.json();
+        renderSettings();
+    }
+
+    /* ── Order triggers ─────────────────────────────────────────── */
+    function setBusy(b) {
+        busy = b;
+        ['btn-place', 'btn-slow-order', 'btn-fail-order', 'btn-dbfail-order', 'btn-innerexc-order'].forEach(id =>
+            document.getElementById(id).disabled = b);
+    }
+
+    function showResult(msg, isError) {
+        document.getElementById('result').innerHTML = isError
+            ? `<div class="result-error" style="margin-top:12px">⚠️ ${esc(msg)}</div>`
+            : `<div class="result-success" style="margin-top:12px">✓ ${esc(msg)}</div>`;
+    }
+
+    async function placeOrder() {
+        await submitOrder({ scenario: 'normal' });
+    }
+
+    async function slowOrder() {
+        await submitOrder({
+            ignoreDemoSettings: true,
+            forceSlowInventory: true,
+            scenario: 'slow'
+        });
+    }
+
+    async function failOrder() {
+        await submitOrder({
+            ignoreDemoSettings: true,
+            forceInventoryFailure: true,
+            scenario: 'fail'
+        });
+    }
+
+    async function dbFailOrder() {
+        await submitOrder({
+            ignoreDemoSettings: true,
+            forceDbFailure: true,
+            scenario: 'db-fail'
+        });
+    }
+
+    async function innerExceptionOrder() {
+        await submitOrder({
+            ignoreDemoSettings: true,
+            forceInventoryTransportFailure: true,
+            scenario: 'inner-exception'
+        });
+    }
+
+    async function lookupCustomer() {
+        const email = document.getElementById('lookupEmail').value || 'emily.williams@globomantics.com';
+        const r = await fetch(`/customers/lookup?email=${encodeURIComponent(email)}`);
+        const el = document.getElementById('lookup-result');
+        if (r.ok) {
+            const body = await r.json();
+            el.innerHTML = `<div class="result-success" style="margin-top:12px">✓ Found ${esc(body.displayName)} (${esc(body.customerId)})</div>`;
+        } else {
+            el.innerHTML = `<div class="result-error" style="margin-top:12px">⚠️ No customer found for that email</div>`;
+        }
+    }
+
+    async function submitOrder(simulation) {
+        if (busy) return;
+        const id   = String(++counter).padStart(4, '0');
+        const cid  = document.getElementById('customerId').value || 'cust-42';
+        const sku  = document.getElementById('sku').value || 'SKU-A1';
+        const qty  = parseInt(document.getElementById('qty').value) || 1;
+        const params = new URLSearchParams();
+        Object.entries(simulation ?? {}).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === false || value === '') return;
+            params.set(key, String(value));
+        });
+
+        setBusy(true);
+        try {
+            const r = await fetch(`/orders?${params.toString()}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: `ord-${id}`, customerId: cid,
+                    customerEmail: `${cid}@globomantics.com`, productSku: sku, quantity: qty
+                })
+            });
+            const body = await r.json().catch(() => null);
+            if (!r.ok) {
+                // ASP.NET Core ProblemDetails serialises extensions at the JSON root.
+                showOrderError(body?.detail ?? body?.title ?? r.statusText, body?.traceId ?? null);
+            } else {
+                showResult(`Order ${body.orderId} accepted`, false);
+            }
+        } catch (e) { showResult(e.message, true); }
+        finally { setBusy(false); }
+    }
+
+    function showOrderError(msg, traceId) {
+        let traceHtml = '';
+        if (traceId) {
+            traceHtml = `<div class="result-trace">
+                <span>Reference:</span>
+                <span class="trace-id-val" title="Click to copy" onclick="copyTraceId(this)">${esc(traceId)}</span>
+                <span class="trace-copy-hint">(click to copy)</span>
+            </div>`;
+        }
+        document.getElementById('result').innerHTML =
+            `<div class="result-error" style="margin-top:12px">⚠️ ${esc(msg)}${traceHtml}</div>`;
+    }
+
+    function copyTraceId(el) {
+        navigator.clipboard.writeText(el.textContent).then(() => {
+            const hint = el.nextElementSibling;
+            if (hint) { hint.textContent = '✓ copied'; setTimeout(() => { hint.textContent = '(click to copy)'; }, 1500); }
+        });
+    }
+
+    /* ── Activity feed ──────────────────────────────────────────── */
+    async function loadFeed() {
+        try {
+            const r       = await fetch('/api/feed');
+            const entries = await r.json();
+            renderFeed(entries);
+        } catch (_) { /* ignore during page load */ }
+    }
+
+    function renderFeed(entries) {
+        const el = document.getElementById('feed-container');
+        if (!entries.length) {
+            el.innerHTML = '<div class="feed-empty">No activity yet — click <strong>Place Order</strong> above to begin.</div>';
+            return;
+        }
+        const rows = entries.map(e => {
+            const t          = new Date(e.timestamp).toTimeString().substring(0, 8);
+            const scenarioCls = e.scenario === 'slow' ? 'badge-slow'
+                              : (e.scenario === 'fail' || e.scenario === 'inner-exception') ? 'badge-failure' : 'badge-normal';
+            const outcomeCls  = e.outcome === 'success' ? 'badge-success' : 'badge-failure';
+            const durationCls = e.durationMs > 1000 ? 'mono text-slow' : 'mono';
+            return `<tr>
+              <td class="mono text-muted">${esc(t)}</td>
+              <td class="mono">${esc(e.orderId)}</td>
+              <td>${esc(e.customerId)}</td>
+              <td><span class="badge ${scenarioCls}">${esc(e.scenario)}</span></td>
+              <td><span class="badge ${outcomeCls}">${e.outcome === 'success' ? '✓' : '✗'} ${esc(e.outcome)}</span></td>
+              <td class="${durationCls}">${e.durationMs.toFixed(0)} ms</td>
+              <td class="text-muted detail-cell">${esc(e.errorMessage ?? '')}</td>
+            </tr>`;
+        }).join('');
+        el.innerHTML = `<table class="feed-table">
+          <thead><tr><th>Time</th><th>Order ID</th><th>Customer</th>
+          <th>Scenario</th><th>Outcome</th><th>Duration</th><th>Detail</th></tr></thead>
+          <tbody>${rows}</tbody></table>`;
+    }
+
+    async function clearFeed() {
+        await fetch('/api/feed', { method: 'DELETE' });
+        renderFeed([]);
+    }
+
+    function esc(s) {
+        return String(s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /* ── Init ───────────────────────────────────────────────────── */
+    loadSettings();
+    loadFeed();
+    setInterval(loadFeed, 1500);
+</script>
+</body>
+</html>

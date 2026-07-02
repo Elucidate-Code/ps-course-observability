@@ -1,0 +1,45 @@
+# Minimal single-binary Loki for the course demo stack.
+# Logs arrive over Loki's native OTLP endpoint (POST /otlp/v1/logs), pushed by
+# the OTel Collector's otlphttp exporter. Ephemeral storage under /tmp — fine
+# for a recording demo, mirrors tempo.yaml. Not a production config.
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+  log_level: warn
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /tmp/loki
+  storage:
+    filesystem:
+      chunks_directory: /tmp/loki/chunks
+      rules_directory: /tmp/loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13          # v13 + tsdb required for OTLP structured metadata
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  tsdb_shipper:
+    active_index_directory: /tmp/loki/tsdb-index
+    cache_location: /tmp/loki/tsdb-cache
+
+limits_config:
+  allow_structured_metadata: true   # required for OTLP ingestion (trace_id, OrderId, CustomerId land here)
+  retention_period: 24h
+
+# Silence the "analytics" phone-home in an offline demo box.
+analytics:
+  reporting_enabled: false

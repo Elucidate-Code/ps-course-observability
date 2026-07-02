@@ -1,0 +1,266 @@
+{
+  "blocks": [
+    {
+      "name": "tracing-activitysource",
+      "group": "tracing",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "    private static readonly ActivitySource _activitySource =",
+        "        new(TelemetryConstants.ActivitySourceName);"
+      ]
+    },
+    {
+      "name": "metrics-meter-and-instruments",
+      "group": "metrics",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "    private static readonly Meter _meter =",
+        "        new(TelemetryConstants.MeterName);",
+        "",
+        "    private static readonly Counter<long> _ordersTotal =",
+        "        _meter.CreateCounter<long>(",
+        "            TelemetryConstants.MetricOrdersTotal,",
+        "            description: \"Total number of orders processed\");",
+        "",
+        "    private static readonly Histogram<double> _orderDuration =",
+        "        _meter.CreateHistogram<double>(",
+        "            TelemetryConstants.MetricOrderDurationMs,",
+        "            unit: \"ms\",",
+        "            description: \"Order processing duration in milliseconds\",",
+        "            // Bucket boundaries (ms): 0 \u00b7 25 \u00b7 50 \u00b7 100 \u00b7 250 \u00b7 500 \u00b7 1000 \u00b7 2500 \u00b7 5000",
+        "            advice: new InstrumentAdvice<double>",
+        "            {",
+        "                HistogramBucketBoundaries = [0, 25, 50, 100, 250, 500, 1000, 2500, 5000]",
+        "            });",
+        "",
+        "    private static readonly UpDownCounter<long> _activeOrders =",
+        "        _meter.CreateUpDownCounter<long>(",
+        "            TelemetryConstants.MetricActiveOrders,",
+        "            description: \"Orders currently being processed\");",
+        "",
+        "    private static readonly Counter<long> _dependencyFailures =",
+        "        _meter.CreateCounter<long>(",
+        "            TelemetryConstants.MetricDependencyFailures,",
+        "            description: \"Dependency call failures\");"
+      ]
+    },
+    {
+      "name": "logging-scope",
+      "group": "logging",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "         using var logScope = logger.BeginScope(new Dictionary<string, object>",
+        "         {",
+        "             [\"CustomerId\"] = order.CustomerId,",
+        "             [\"OrderId\"] = order.OrderId,",
+        "             [\"Scenario\"] = simulation.Scenario,",
+        "         });"
+      ]
+    },
+    {
+      "name": "metrics-active-increment",
+      "group": "metrics",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "        _activeOrders.Add(1);",
+        "        var stopwatch = Stopwatch.StartNew();"
+      ]
+    },
+    {
+      "name": "tracing-root-span",
+      "group": "tracing",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "        using var orderActivity = _activitySource.StartActivity(",
+        "            TelemetryConstants.SpanProcessOrder,",
+        "            ActivityKind.Internal);",
+        "        orderActivity?.SetTag(\"order.id\", order.OrderId);",
+        "        orderActivity?.SetTag(\"order.customer\", order.CustomerId);",
+        "        orderActivity?.SetTag(\"order.sku\", order.ProductSku);",
+        "        orderActivity?.SetTag(\"order.quantity\", order.Quantity);",
+        "        orderActivity?.SetTag(\"order.scenario\", simulation.Scenario);"
+      ]
+    },
+    {
+      "name": "tracing-root-tags-late",
+      "group": "tracing",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "            orderActivity?.SetTag(\"customer.region\", customer.Region);",
+        "            orderActivity?.SetTag(\"customer.tier\", customer.LoyaltyTier);",
+        "            // PII \u2014 the M4C4 redaction processor masks this value before export.",
+        "            orderActivity?.SetTag(\"customer.email\", customer.Email);",
+        "            orderActivity?.SetTag(\"product.category\", product.Category);",
+        "            orderActivity?.SetTag(\"order.total\", (double)quote.Total);",
+        "            orderActivity?.SetTag(\"fulfillment.warehouse\", plan.Warehouse);"
+      ]
+    },
+    {
+      "name": "metrics-success-record",
+      "group": "metrics",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "            stopwatch.Stop();",
+        "            _ordersTotal.Add(1, new KeyValuePair<string, object?>(\"outcome\", \"success\"));",
+        "            _orderDuration.Record(stopwatch.Elapsed.TotalMilliseconds);"
+      ]
+    },
+    {
+      "name": "tracing-root-catch",
+      "group": "tracing",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "            orderActivity?.AddException(ex);",
+        "            orderActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);",
+        "            orderActivity?.SetTag(\"error.type\", ex.GetType().FullName);"
+      ]
+    },
+    {
+      "name": "metrics-failure-record",
+      "group": "metrics",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "            stopwatch.Stop();",
+        "            _ordersTotal.Add(1, new KeyValuePair<string, object?>(\"outcome\", \"failure\"));",
+        "            _orderDuration.Record(stopwatch.Elapsed.TotalMilliseconds);"
+      ]
+    },
+    {
+      "name": "logging-error-structured",
+      "group": "logging",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "            logger.LogError(ex,",
+        "                \"Order failed: {DependencyError}\",",
+        "                 ex.Message);"
+      ]
+    },
+    {
+      "name": "metrics-active-decrement",
+      "group": "metrics",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "            _activeOrders.Add(-1);"
+      ]
+    },
+    {
+      "name": "tracing-inventory-span",
+      "group": "tracing",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "        using var inventoryActivity = _activitySource.StartActivity(",
+        "            TelemetryConstants.SpanInventoryCheck,",
+        "            ActivityKind.Client);",
+        "        inventoryActivity?.SetTag(\"inventory.sku\", order.ProductSku);",
+        "        inventoryActivity?.SetTag(\"inventory.qty\", order.Quantity);"
+      ]
+    },
+    {
+      "name": "tracing-inventory-catch",
+      "group": "tracing",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "            inventoryActivity?.AddException(ex);",
+        "            inventoryActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);",
+        "            inventoryActivity?.SetTag(\"error.type\", ex.GetType().FullName);"
+      ]
+    },
+    {
+      "name": "metrics-dependency-failure-inventory",
+      "group": "metrics",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "            _dependencyFailures.Add(",
+        "                1,",
+        "                new KeyValuePair<string, object?>(\"dependency\", \"inventory\"));"
+      ]
+    },
+    {
+      "name": "metrics-dependency-failure-payment",
+      "group": "metrics",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "            _dependencyFailures.Add(",
+        "                1,",
+        "                new KeyValuePair<string, object?>(\"dependency\", \"payment\"));"
+      ]
+    },
+    {
+      "name": "tracing-persist-span",
+      "group": "tracing",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "        using var dbActivity = _activitySource.StartActivity(",
+        "            TelemetryConstants.SpanOrdersPersist,",
+        "            ActivityKind.Internal);",
+        "        dbActivity?.SetTag(\"db.system\", \"sqlite\");",
+        "        dbActivity?.SetTag(\"db.operation\", \"INSERT\");",
+        "        dbActivity?.SetTag(\"order.id\", order.OrderId);"
+      ]
+    },
+    {
+      "name": "tracing-persist-catch",
+      "group": "tracing",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "            dbActivity?.AddException(ex);",
+        "            dbActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);"
+      ]
+    },
+    {
+      "name": "metrics-dependency-failure-db",
+      "group": "metrics",
+      "file": "ObservabilityDemo.OrderService/Services/OrderProcessingService.cs",
+      "lines": [
+        "            _dependencyFailures.Add(",
+        "                1,",
+        "                new KeyValuePair<string, object?>(\"dependency\", \"orders-db\"));"
+      ]
+    },
+    {
+      "name": "tracing-add-source",
+      "group": "tracing",
+      "file": "ObservabilityDemo.OrderService/TelemetryConfiguration.cs",
+      "lines": [
+        "                 .AddSource(TelemetryConstants.ActivitySourceName)"
+      ]
+    },
+    {
+      "name": "tracing-pii-processor",
+      "group": "pii",
+      "file": "ObservabilityDemo.OrderService/TelemetryConfiguration.cs",
+      "lines": [
+        "                .AddProcessor(new PiiRedactionProcessor())"
+      ]
+    },
+    {
+      "name": "metrics-add-meter",
+      "group": "metrics",
+      "file": "ObservabilityDemo.OrderService/TelemetryConfiguration.cs",
+      "lines": [
+        "                .AddMeter(TelemetryConstants.MeterName)"
+      ]
+    },
+    {
+      "name": "logging-pii-processor",
+      "group": "pii",
+      "file": "ObservabilityDemo.OrderService/TelemetryConfiguration.cs",
+      "lines": [
+        "                // M4C4 enables this off-camera before recording \u2014 see that clip's setup.",
+        "                .AddProcessor(new PiiRedactionLogProcessor())   // log-pipeline equivalent of PiiRedactionProcessor \u2014 covers log entries, not spans"
+      ]
+    },
+    {
+      "name": "tracing-exception-redaction",
+      "group": "pii",
+      "file": "ObservabilityDemo.OrderService/TelemetryConfiguration.cs",
+      "lines": [
+        "        // Activity.AddException() tags can't be redacted by any BaseProcessor<Activity> \u2014",
+        "        // verified by testing, not assumed. This registers the listener that redacts",
+        "        // exception.message/exception.stacktrace before that event is ever created.",
+        "        // See PiiRedactionProcessor.RegisterExceptionRedaction for why.",
+        "        PiiRedactionProcessor.RegisterExceptionRedaction();"
+      ]
+    }
+  ]
+}

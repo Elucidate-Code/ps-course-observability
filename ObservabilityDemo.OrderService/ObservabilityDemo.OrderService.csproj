@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- CS9113: primary constructor parameter unread — intentional in InventoryClient
+         (HttpClient is scaffolded for when a real inventory URL is wired in) -->
+    <NoWarn>$(NoWarn);CS9113</NoWarn>
+  </PropertyGroup>
+
+  <!-- Old/ holds retired code (e.g. the unused Blazor Components folder) kept for reference, not built. -->
+  <ItemGroup>
+    <Compile Remove="Old/**" />
+    <Content Remove="Old/**" />
+    <None Remove="Old/**" />
+    <RazorComponent Remove="Old/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.4" />
+
+    <!-- OpenTelemetry core -->
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
+
+    <!-- Tracing instrumentation -->
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.15.1-beta.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
+
+    <!-- Metrics instrumentation (includes .NET runtime metrics) -->
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
+
+    <!-- Logging bridge (routes ILogger to OTel pipeline) -->
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.15.3" />
+  </ItemGroup>
+
+</Project>

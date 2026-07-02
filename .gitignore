@@ -1,0 +1,16 @@
+# .NET build output
+bin/
+obj/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Local secrets (per-developer OTLP backend credentials, never commit)
+appsettings.*.local.json
+
+# OS
+.DS_Store
+Thumbs.db

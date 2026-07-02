@@ -1,0 +1,51 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: order-service-slo
+    folder: Demo
+    interval: 1m
+    rules:
+      - uid: order-p95-latency
+        title: Order p95 latency above threshold
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: histogram_quantile(0.95, sum by(le) (rate(orders_duration_ms_milliseconds_bucket[5m])))
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [800]
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        labels: {}
+        annotations:
+          summary: "Order p95 latency is above 800 ms"

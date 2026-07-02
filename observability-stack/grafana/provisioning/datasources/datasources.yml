@@ -1,0 +1,49 @@
+apiVersion: 1
+
+datasources:
+  # Tempo must be first — Prometheus references its UID in exemplarTraceIdDestinations.
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      # Span -> logs: from any span, jump to the Loki logs for that trace.
+      # trace_id arrives as OTLP structured metadata on each log entry.
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
+        filterByTraceID: false
+        customQuery: true
+        query: '{service_name="orderservice"} | trace_id="$${__span.traceId}"'
+
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      # Exemplar dot -> Tempo trace. Declared statically here because both
+      # datasources use fixed uids above — no need to look up Tempo's uid at
+      # runtime and PATCH it in, which is what the old setup-exemplars script did.
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: tempo
+
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      # Log -> trace: turn the trace_id structured-metadata field into a link to Tempo.
+      derivedFields:
+        - name: TraceID
+          matcherType: label
+          matcherRegex: trace_id
+          datasourceUid: tempo
+          url: '$${__value.raw}'
