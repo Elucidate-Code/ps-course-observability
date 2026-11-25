@@ -5,7 +5,7 @@ using ObservabilityDemo.OrderService.Domain;
 namespace ObservabilityDemo.OrderService.Demo;
 
 /// <summary>
-/// Demo 3 / Module 3 Clip 3 — Load Generator
+/// Load generator
 ///
 /// When DemoSettings.HighLoad = true, this background service generates a small,
 /// mixed HTTP workload against the app itself so the traces look like real request

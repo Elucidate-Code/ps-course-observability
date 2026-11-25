@@ -6,7 +6,7 @@ using OpenTelemetry;
 namespace ObservabilityDemo.OrderService.Telemetry;
 
 /// <summary>
-/// Demo 4 / M4C4 — PII Masking
+/// PII masking (Module 4)
 ///
 /// A BaseProcessor&lt;Activity&gt; runs in the OTel pipeline for every span that is exported.
 /// Masking here is done ONCE in the pipeline rather than at every individual call site.
@@ -32,7 +32,7 @@ namespace ObservabilityDemo.OrderService.Telemetry;
 /// HOW TO ACTIVATE:
 ///   In TelemetryConfiguration.cs, inside .WithTracing(...):
 ///       .AddProcessor(new PiiRedactionProcessor())
-///   This line is present but commented out — uncomment for Demo 4.
+///   This line is present but commented out until state M4 (./Set-DemoState.ps1 -State M4).
 ///
 /// Key teaching point: masking belongs in the pipeline, not in business code.
 /// A new sensitive field only requires updating this one file.

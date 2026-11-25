@@ -34,7 +34,7 @@ public sealed class PaymentGatewayClient(ILogger<PaymentGatewayClient> logger)
 
     private static async Task RunRiskChecksAsync(Order order, PriceQuote quote, CancellationToken ct)
     {
-        // [DEMO-BLOCK: tracing-extras] Payment spans intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Payment spans left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var activity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanPaymentRiskCheck,
         //     ActivityKind.Internal);
@@ -46,7 +46,7 @@ public sealed class PaymentGatewayClient(ILogger<PaymentGatewayClient> logger)
 
     private static async Task CallGatewayAsync(Order order, PriceQuote quote, CancellationToken ct)
     {
-        // [DEMO-BLOCK: tracing-extras] Payment spans intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Payment spans left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var activity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanPaymentGatewayCall,
         //     ActivityKind.Client);
@@ -58,7 +58,7 @@ public sealed class PaymentGatewayClient(ILogger<PaymentGatewayClient> logger)
 
     private static async Task WriteAuditAsync(Order order, PriceQuote quote, CancellationToken ct)
     {
-        // [DEMO-BLOCK: tracing-extras] Payment spans intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Payment spans left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var activity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanPaymentAuditWrite,
         //     ActivityKind.Internal);

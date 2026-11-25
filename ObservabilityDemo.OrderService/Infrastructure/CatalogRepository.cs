@@ -38,7 +38,7 @@ public sealed class CatalogRepository(AppDbContext db, ILogger<CatalogRepository
 
         logger.LogDebug("Loaded catalog item {Sku}", sku);
 
-        // [DEMO-BLOCK: tracing-extras] Catalog mapping span intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Catalog mapping span left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var mapActivity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanCatalogResultMap,
         //     ActivityKind.Internal);

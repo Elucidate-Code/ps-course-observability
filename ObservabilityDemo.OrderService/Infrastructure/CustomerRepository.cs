@@ -59,7 +59,7 @@ public sealed class CustomerRepository(AppDbContext db, ILogger<CustomerReposito
 
         logger.LogDebug("Loaded customer profile {CustomerId}", customerId);
 
-        // [DEMO-BLOCK: tracing-extras] Customer mapping span intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Customer mapping span left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var mapActivity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanCustomerResultMap,
         //     ActivityKind.Internal);

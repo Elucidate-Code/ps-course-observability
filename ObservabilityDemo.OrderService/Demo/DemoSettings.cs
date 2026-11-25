@@ -9,8 +9,8 @@ namespace ObservabilityDemo.OrderService.Demo;
 ///   FailInventory   → inventory call throws       (shows error span + correlated log)
 ///   HighLoad        → load generator fires ~20 req/s (stresses metrics histograms)
 ///   DegradingLoad   → load generator ramps slow-order percentage from 5% → 65% over ~30 s,
-///                     producing a climbing P95/P99 curve while P50 stays flat — ideal for
-///                     recording the "tail latency rising" demo beat.
+///                     producing a climbing P95/P99 curve while P50 stays flat — useful for
+///                     showing tail latency rise while the median holds.
 /// </summary>
 public sealed class DemoSettings
 {

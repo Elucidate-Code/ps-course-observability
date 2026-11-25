@@ -10,29 +10,18 @@ namespace ObservabilityDemo.OrderService.Services;
 /// <summary>
 /// Core order processing service.
 ///
-/// DEMO INSTRUMENTATION GUIDE — use prepared checkpoints rather than line-by-line live edits:
+/// The instrumentation in this file and in TelemetryConfiguration.cs is grouped into named
+/// [DEMO-BLOCK] regions. Run Set-DemoState.ps1 from the repository root to move between the
+/// course checkpoints instead of editing the regions by hand:
 ///
-///  ▶ DEMO 1  (M1C6)  — Recording baseline.
-///                       Comment out the business logging calls in this file and disable
-///                       AddSource/AddMeter in TelemetryConfiguration.cs.
-///                       Result: default framework telemetry only.
+///   M1  Framework auto-instrumentation only - the starting point of the course
+///   M2  + custom tracing: the ActivitySource and the order.process span tree (Module 2)
+///   M3  + custom metrics: the Meter, its four instruments and their call sites (Module 3)
+///   M4  + structured logging and PII redaction on traces and logs (Module 4)
+///   M5  Same code as M4 - Module 5 changes where telemetry is sent, not the instrumentation
 ///
-///  ▶ DEMO 2  (M2C5)  — Tracing checkpoint.
-///                       Pre-recording Stage 0: comment out every [DEMO-BLOCK: tracing-*]
-///                       region below AND the [DEMO-BLOCK: tracing-add-source] line in
-///                       TelemetryConfiguration.cs. During the demo, re-enable them in the
-///                       order the slide plan calls them out.
-///
-///  ▶ DEMO 3  (M3C3)  — Metrics checkpoint.
-///                       Re-enable AddMeter in TelemetryConfiguration.cs, then show the Meter,
-///                       the four instruments below, and the Add/Record call sites in this file.
-///
-///  ▶ DEMO 4  (M4C6)  — Logging checkpoint.
-///                       Re-enable BeginScope plus the success/failure log calls here. Optionally
-///                       enable the PII processor in TelemetryConfiguration.cs for the masking step.
-///
-///  ▶ DEMO 5  (M5C3)  — All blocks uncommented. Enable slow/failure scenarios from
-///                       the workbench. Walk metrics → trace → logs in dashboard.
+/// For a full investigation, use M5, turn on the slow and failure scenarios in the
+/// workbench, and follow metrics to a trace and then to its logs.
 /// </summary>
 public sealed class OrderProcessingService(
     CustomerRepository customers,
@@ -48,7 +37,7 @@ public sealed class OrderProcessingService(
     private readonly DemoSettings _settings = settings;
 
     // =========================================================================
-    // [DEMO 2 — TRACING] Uncomment the ActivitySource below.
+    // [MODULE 2 - TRACING] The ActivitySource (on from state M2).
     // =========================================================================
     // [DEMO-BLOCK BEGIN: tracing-activitysource]
     // private static readonly ActivitySource _activitySource =
@@ -56,7 +45,7 @@ public sealed class OrderProcessingService(
     // [DEMO-BLOCK END: tracing-activitysource]
 
     // =========================================================================
-    // [DEMO 3 — METRICS] Uncomment the Meter and instruments below.
+    // [MODULE 3 - METRICS] The Meter and its instruments (on from state M3).
     // =========================================================================
     // [DEMO-BLOCK BEGIN: metrics-meter-and-instruments]
     // private static readonly Meter _meter =
@@ -131,7 +120,7 @@ public sealed class OrderProcessingService(
             // [DEMO-BLOCK BEGIN: tracing-root-tags-late]
             // orderActivity?.SetTag("customer.region", customer.Region);
             // orderActivity?.SetTag("customer.tier", customer.LoyaltyTier);
-            // PII — the M4C4 redaction processor masks this value before export.
+            // PII - the redaction processor (on from state M4) masks this value before export.
             // orderActivity?.SetTag("customer.email", customer.Email);
             // orderActivity?.SetTag("product.category", product.Category);
             // orderActivity?.SetTag("order.total", (double)quote.Total);
@@ -189,7 +178,7 @@ public sealed class OrderProcessingService(
                 // ex.Message);
             // [DEMO-BLOCK END: logging-error-with-exception]
 
-
+            _ = ex;
             throw;
         }
         finally

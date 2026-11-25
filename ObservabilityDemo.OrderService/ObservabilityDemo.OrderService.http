@@ -1,6 +1,28 @@
-@ObservabilityDemo.OrderService_HostAddress = http://localhost:5081
+@host = http://localhost:5081
 
-GET {{ObservabilityDemo.OrderService_HostAddress}}/weatherforecast/
-Accept: application/json
+### Place one order
+POST {{host}}/orders
+Content-Type: application/json
 
-###
+{
+  "orderId": "http-file-001",
+  "customerId": "cust-001",
+  "customerEmail": "john.doe@globomantics.com",
+  "productSku": "SKU-A1",
+  "quantity": 1
+}
+
+### Recently saved orders
+GET {{host}}/orders/recent
+
+### Customers
+GET {{host}}/customers
+
+### Look up a customer by email (PII in the query string)
+GET {{host}}/customers/lookup?email=john.doe@globomantics.com
+
+### Catalog products
+GET {{host}}/catalog/products
+
+### Current demo toggle state
+GET {{host}}/demo/settings

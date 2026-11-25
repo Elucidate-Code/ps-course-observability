@@ -1,7 +1,7 @@
 # Minimal single-binary Loki for the course demo stack.
 # Logs arrive over Loki's native OTLP endpoint (POST /otlp/v1/logs), pushed by
 # the OTel Collector's otlphttp exporter. Ephemeral storage under /tmp — fine
-# for a recording demo, mirrors tempo.yaml. Not a production config.
+# for a local demo, mirrors tempo.yaml. Not a production config.
 auth_enabled: false
 
 server:

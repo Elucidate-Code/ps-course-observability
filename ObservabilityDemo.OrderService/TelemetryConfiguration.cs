@@ -81,7 +81,7 @@ public static class TelemetryConfiguration
             .WithLogging(logging => logging
                 .SetResourceBuilder(resource)
                 // [DEMO-BLOCK BEGIN: logging-pii-processor]
-                // M4C4 enables this off-camera before recording — see that clip's setup.
+                // Log-pipeline PII redaction (on from state M4).
                 // .AddProcessor(new PiiRedactionLogProcessor())   // log-pipeline equivalent of PiiRedactionProcessor — covers log entries, not spans
                 // [DEMO-BLOCK END: logging-pii-processor]
                 .AddOtlpExporter(otlp => ConfigureOtlp(otlp, configuration, "/v1/logs")));

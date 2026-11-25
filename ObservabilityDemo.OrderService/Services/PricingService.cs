@@ -35,7 +35,7 @@ public sealed class PricingService
         decimal gross,
         CancellationToken ct)
     {
-        // [DEMO-BLOCK: tracing-extras] Pricing spans intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Pricing spans left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var activity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanPricingDiscount,
         //     ActivityKind.Internal);
@@ -59,7 +59,7 @@ public sealed class PricingService
         CustomerProfile customer,
         CancellationToken ct)
     {
-        // [DEMO-BLOCK: tracing-extras] Pricing spans intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Pricing spans left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var activity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanPricingShipping,
         //     ActivityKind.Internal);
@@ -71,7 +71,7 @@ public sealed class PricingService
 
     private static async Task<decimal> CalculateTaxAsync(decimal net, CancellationToken ct)
     {
-        // [DEMO-BLOCK: tracing-extras] Pricing spans intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Pricing spans left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var activity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanPricingTax,
         //     ActivityKind.Internal);

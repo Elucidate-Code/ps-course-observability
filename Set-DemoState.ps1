@@ -5,14 +5,15 @@
 .DESCRIPTION
   The source has named [DEMO-BLOCK BEGIN: x] / [DEMO-BLOCK END: x] regions in
   TelemetryConfiguration.cs and OrderProcessingService.cs. Each region belongs to a
-  group (tracing / metrics / logging / pii), and each course module cumulatively
-  turns one more group on:
+  group (tracing / metrics / logging / pii), and the course modules turn the
+  groups on cumulatively:
 
     M1  framework auto-instrumentation only (ASP.NET Core, EF Core, HttpClient)
     M2  + tracing   (ActivitySource, custom spans)                 -> after Module 2
     M3  + metrics   (Meter, counters/histogram)                    -> after Module 3
-    M4  + logging   (structured logs, business fields)              -> after Module 4
-    M5  + pii       (PII redaction processor on traces + logs)      -> after Module 5
+    M4  + logging   (structured logs, business fields)
+        + pii       (PII redaction processor on traces + logs)     -> after Module 4
+    M5  same code as M4 (Module 5 changes the backend, not the code) -> after Module 5
 
   Canonical (fully "on") content for every managed block lives in
   tools/demo-block-manifest.json. Turning a group off comments out its block's
@@ -63,13 +64,17 @@ if (-not (Test-Path $manifestPath)) {
 }
 
 $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
-$groupOrder = @('tracing', 'metrics', 'logging', 'pii')
+$stateGroups = @{
+    M1 = @()
+    M2 = @('tracing')
+    M3 = @('tracing', 'metrics')
+    M4 = @('tracing', 'metrics', 'logging', 'pii')
+    M5 = @('tracing', 'metrics', 'logging', 'pii')
+}
 
 function Get-EnabledGroups([string]$state) {
     if (-not $state) { return @() }
-    $count = [int]$state.Substring(1) - 1   # M1 -> 0, M2 -> 1, ... M5 -> 4
-    if ($count -le 0) { return @() }
-    return $groupOrder[0..($count - 1)]
+    return $stateGroups[$state]
 }
 
 function ConvertTo-CommentedLines($lines) {

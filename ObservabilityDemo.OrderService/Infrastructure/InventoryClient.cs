@@ -11,7 +11,7 @@ namespace ObservabilityDemo.OrderService.Infrastructure;
 /// so fault injection is controlled from the live workbench toggles.
 ///
 /// The <c>inventory.partner.call</c> span is intentionally kept as a grandchild
-/// of <c>order.process</c> (via <c>inventory.check</c>) so the M2C5 demo can show
+/// of <c>order.process</c> (via <c>inventory.check</c>) so the Module 2 demo can show
 /// a parent → child → grandchild trace tree.
 /// </summary>
 public sealed class InventoryClient(
@@ -37,7 +37,7 @@ public sealed class InventoryClient(
         var shouldFail = simulation.ForceInventoryFailure
             || (!simulation.IgnoreDemoSettings && _settings.FailInventory);
 
-        // [DEMO-BLOCK: tracing-partner-call] Uncomment in M2C5 to reveal the inventory.partner.call grandchild span.
+        // [DEMO-BLOCK: tracing-partner-call] Uncomment to reveal the inventory.partner.call grandchild span.
         // using (var partnerCallActivity = ActivitySource.StartActivity(
         //            TelemetryConstants.SpanInventoryPartnerCall,
         //            ActivityKind.Client))

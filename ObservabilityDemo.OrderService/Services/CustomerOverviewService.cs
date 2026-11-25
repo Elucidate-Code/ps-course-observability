@@ -14,7 +14,7 @@ public sealed class CustomerOverviewService(CustomerRepository repository)
         int take,
         CancellationToken ct = default)
     {
-        // [DEMO-BLOCK: tracing-extras] Customer-overview spans intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Customer-overview spans left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var listActivity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanCustomersList,
         //     ActivityKind.Internal);

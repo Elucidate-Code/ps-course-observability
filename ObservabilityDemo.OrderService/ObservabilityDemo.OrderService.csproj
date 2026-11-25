@@ -9,16 +9,11 @@
     <NoWarn>$(NoWarn);CS9113</NoWarn>
   </PropertyGroup>
 
-  <!-- Old/ holds retired code (e.g. the unused Blazor Components folder) kept for reference, not built. -->
-  <ItemGroup>
-    <Compile Remove="Old/**" />
-    <Content Remove="Old/**" />
-    <None Remove="Old/**" />
-    <RazorComponent Remove="Old/**" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.4" />
+    <!-- Pins the native SQLite bundle above 2.1.10, which has a known high-severity vulnerability
+         (GHSA-2m69-gcr7-jv3q). EF Core 9.0.4 would otherwise pull 2.1.10 in. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.14" />
 
     <!-- OpenTelemetry core -->
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
@@ -31,9 +26,6 @@
 
     <!-- Metrics instrumentation (includes .NET runtime metrics) -->
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
-
-    <!-- Logging bridge (routes ILogger to OTel pipeline) -->
-    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.15.3" />
   </ItemGroup>
 
 </Project>

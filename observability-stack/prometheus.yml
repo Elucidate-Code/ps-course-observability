@@ -7,7 +7,7 @@ scrape_configs:
       - targets: ["otel-collector:8889"]
 
   # Collector's own self-telemetry (queue size, send-failures) — not application
-  # metrics. This is what backs the pipeline-health beat in M5C4.
+  # metrics. Module 5 uses it to show telemetry pipeline health.
   - job_name: "otel-collector-internal"
     static_configs:
       - targets: ["otel-collector:8888"]

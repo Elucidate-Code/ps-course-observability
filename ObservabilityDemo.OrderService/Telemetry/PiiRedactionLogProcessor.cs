@@ -4,7 +4,7 @@ using OpenTelemetry.Logs;
 namespace ObservabilityDemo.OrderService.Telemetry;
 
 /// <summary>
-/// Demo 4 / M4C4 — PII Masking, logging pipeline.
+/// PII masking (Module 4), logging pipeline.
 ///
 /// Logging-pipeline counterpart to PiiRedactionProcessor. Same rules (the
 /// _piiKeys/_valuePatterns/RedactPairsList/RedactFreeText defined on

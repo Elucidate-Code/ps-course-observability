@@ -32,7 +32,7 @@ public sealed class FulfillmentService
         int quantity,
         CancellationToken ct)
     {
-        // [DEMO-BLOCK: tracing-extras] Fulfillment spans intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Fulfillment spans left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var activity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanFulfillmentCapacityCheck,
         //     ActivityKind.Internal);
@@ -44,7 +44,7 @@ public sealed class FulfillmentService
 
     private static async Task QuoteRouteAsync(CustomerProfile customer, CancellationToken ct)
     {
-        // [DEMO-BLOCK: tracing-extras] Fulfillment spans intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Fulfillment spans left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var activity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanFulfillmentRouteQuote,
         //     ActivityKind.Client);
@@ -55,7 +55,7 @@ public sealed class FulfillmentService
 
     private static async Task<string> SelectWarehouseAsync(CustomerProfile customer, CancellationToken ct)
     {
-        // [DEMO-BLOCK: tracing-extras] Fulfillment spans intentionally disabled for the M2C5 demo flow.
+        // [DEMO-BLOCK: tracing-extras] Fulfillment spans left off to keep the Module 2 trace tree focused; uncomment to add them.
         // using var activity = ActivitySource.StartActivity(
         //     TelemetryConstants.SpanFulfillmentWarehouseSelect,
         //     ActivityKind.Internal);

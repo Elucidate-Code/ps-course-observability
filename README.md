@@ -81,15 +81,15 @@ Some endpoints are deliberately excluded from tracing so the trace list doesn't 
 
 The source has small, named `[DEMO-BLOCK BEGIN: x] ... [DEMO-BLOCK END: x]` regions in
 `TelemetryConfiguration.cs` and `OrderProcessingService.cs`. Each region belongs to a group, and
-each course module cumulatively turns one more group on:
+the course modules turn the groups on cumulatively:
 
 | State | What's active | Corresponds to |
 |---|---|---|
 | **M1** (current state) | Framework auto-instrumentation only: ASP.NET Core, EF Core, HttpClient | Start of Module 1 |
 | **M2** | + custom tracing (`ActivitySource`, the `order.process` span and its children) | After Module 2 |
 | **M3** | + custom metrics (`Meter`, counters/histogram) | After Module 3 |
-| **M4** | + structured logging (`BeginScope`, business log fields) | After Module 4 |
-| **M5** | + PII redaction processor on traces and logs | After Module 5 |
+| **M4** | + structured logging (`BeginScope`, business log fields) and the PII redaction processors on traces and logs | After Module 4 |
+| **M5** | Same code as M4. Module 5 changes where telemetry goes (see below), not the instrumentation | After Module 5 |
 
 Move between states with:
 

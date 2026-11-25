@@ -88,7 +88,7 @@
       "lines": [
         "            orderActivity?.SetTag(\"customer.region\", customer.Region);",
         "            orderActivity?.SetTag(\"customer.tier\", customer.LoyaltyTier);",
-        "            // PII \u2014 the M4C4 redaction processor masks this value before export.",
+        "            // PII - the redaction processor (on from state M4) masks this value before export.",
         "            orderActivity?.SetTag(\"customer.email\", customer.Email);",
         "            orderActivity?.SetTag(\"product.category\", product.Category);",
         "            orderActivity?.SetTag(\"order.total\", (double)quote.Total);",
@@ -246,7 +246,7 @@
       "group": "pii",
       "file": "ObservabilityDemo.OrderService/TelemetryConfiguration.cs",
       "lines": [
-        "                // M4C4 enables this off-camera before recording \u2014 see that clip's setup.",
+        "                // Log-pipeline PII redaction (on from state M4).",
         "                .AddProcessor(new PiiRedactionLogProcessor())   // log-pipeline equivalent of PiiRedactionProcessor \u2014 covers log entries, not spans"
       ]
     },

@@ -15,7 +15,7 @@ public static class TelemetryConstants
     // Meter name — registered in OTel metrics pipeline
     public const string MeterName = "ObservabilityDemo.OrderService";
 
-    // ---- Span names (M2C4) ----
+    // ---- Span names (Module 2) ----
     public const string SpanProcessOrder    = "order.process";
     public const string SpanCustomersList   = "customers.list";
     public const string SpanCustomersCrmEnrich = "customers.crm.enrich";
@@ -42,7 +42,7 @@ public static class TelemetryConstants
     public const string SpanFulfillmentWarehouseSelect = "fulfillment.warehouse.select";
     public const string SpanOrdersPersist   = "orders.persist";
 
-    // ---- Metric names (M3C3) ----
+    // ---- Metric names (Module 3) ----
     public const string MetricOrdersTotal        = "orders.total";
     public const string MetricOrderDurationMs    = "orders.duration_ms";
     public const string MetricActiveOrders       = "orders.active";
