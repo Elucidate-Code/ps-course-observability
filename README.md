@@ -19,7 +19,9 @@ each piece does; it isn't a substitute for the course itself.
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for the Aspire Dashboard and, later, the Grafana stack)
-- PowerShell 7+ (`pwsh`) to run the two `.ps1` scripts. On Windows this ships with recent .NET SDKs; on macOS/Linux install via `dotnet tool install --global PowerShell` or your package manager.
+- PowerShell 7+ (`pwsh`) — optional, only needed to run the two `.ps1` convenience scripts. Without it:
+  - `Start-AspireDashboard.ps1` → run the `docker run` command from inside that file directly.
+  - `Set-DemoState.ps1` → edit the `[DEMO-BLOCK]` regions by hand per the table below.
 
 ## Quickstart
 
@@ -83,7 +85,7 @@ each course module cumulatively turns one more group on:
 
 | State | What's active | Corresponds to |
 |---|---|---|
-| **M1** (checked-in default) | Framework auto-instrumentation only: ASP.NET Core, EF Core, HttpClient | Start of Module 1 |
+| **M1** (current state) | Framework auto-instrumentation only: ASP.NET Core, EF Core, HttpClient | Start of Module 1 |
 | **M2** | + custom tracing (`ActivitySource`, the `order.process` span and its children) | After Module 2 |
 | **M3** | + custom metrics (`Meter`, counters/histogram) | After Module 3 |
 | **M4** | + structured logging (`BeginScope`, business log fields) | After Module 4 |
